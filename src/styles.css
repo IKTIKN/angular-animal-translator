@@ -1,1 +1,27 @@
-/* You can add global styles to this file, and also import other style files */
+html,
+body {
+    height: 100%;
+}
+
+body {
+    margin: 0;
+    font-family: "Balsamiq Sans", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+}
+
+/* Override Material-specific typography */
+.mat-typography,
+.mat-form-field,
+.mat-select,
+.mat-button,
+.mat-checkbox,
+.mat-menu,
+.mat-tooltip {
+    font-family: "Balsamiq Sans", sans-serif !important;
+}
+
+/* Ensure all text elements inherit the custom font */
+* {
+    font-family: inherit !important;
+}
