@@ -1,27 +1,35 @@
-# AngularAnimalTranslator
+# Acceptance Criteria
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 18.0.3.
+## User Story 1
+Als gebruiker wil ik input kunnen vertalen naar een andere (dieren)taal zodat er tussen
+verschillende soorten gecommuniceerd kan worden
 
-## Development server
+| **Requirement** | **Description**                       | **Status** |
+|-----------------------|---------------------------------------|------------|
+| AC-1.1 | Er moet een select komen om de originele taal te selecteren.| ✔ |
+| AC-1.2 | De pagina bevat een textarea inputfield waar de te translaten string ingezet kan worden, deze moet minimaal 1 karakter bevatten | ✖ |
+| AC-1.3 | De pagina bevat een select om de taal te selecteren waar naar de input vertaald moet worden. | ✔ |
+| AC-1.4 | Indien er op de knop ‘Vertaal’ geklikt wordt dient de tekst vertaald te worden volgens bijgevoegde vertaal algoritme en weergegeven in het output-veld. | ✔ |
+| AC-1.5 | Het moet visueel duidelijk zijn om welke vertaling het gaat. | ✖ |
+| AC-1.6 | Indien de geselecteerde originele taal niet overeenkomt met de ingevoerde tekst dient er een error weergegeven te worden met de tekst ‘Input komt niet overeen met geselecteerde taal’. | ✔ |
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
+## User Story 2
+Als gebruiker wil ik dat mijn input taal automatisch herkend wordt, zodat ik deze niet
+hoef te selecteren
 
-## Code scaffolding
+| **Requirement** | **Description**                       | **Status** |
+|-----------------------|---------------------------------------|------------|
+| AC-2.1 | In de select om de originele taal te selecteren moet een optie ‘Taal herkennen’ komen, dit moet de standaard geselecteerde waarde zijn.| ✔ |
+| AC-2.2 | Zodra ik op de knop ‘Vertalen’ klik moet de taal vertaald worden vanaf de gedetecteerde taal naar de aangegeven taal. | ✔ |
+| AC-2.3 | De optie ‘Taal herkennen’ verandert in ‘{taal} gedetecteerd’. | ✔ |
+| AC-2.4 | Indien er geen taal herkend kan worden moet er een foutmelding getoond worden ‘Taal kon niet automatisch worden herkend’. | ✔ |
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+## User Story 3
+Als gebruiker wil ik aangeven dat mijn vertaling wordt gedaan door een dronken vertaler zodat ik in het weekend ook de vertaling begrijp.
 
-## Build
+| **Requirement** | **Description**                       | **Status** |
+|-----------------------|---------------------------------------|------------|
+| AC-3.1 | Er is een checkbox bij de ‘bestemmings’ taal selector, ‘Ik ben zo dronken!!!’ indien deze geselecteerd is wordt het dronken algoritme toegepast. | ✖ |
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
 
-## Running unit tests
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
-
-## Running end-to-end tests
-
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
-
-## Further help
-
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
