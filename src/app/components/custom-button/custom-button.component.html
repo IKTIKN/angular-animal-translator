@@ -1,0 +1,6 @@
+<!-- Custom shaped netpresenter button -->
+<button (click)="emitButtonClick()"
+    class="w-full custom-button text-lg text-white font-semibold bg-teal-600 hover:bg-teal-700 active:bg-teal-800 focus:outline-none focus:ring-4 focus:ring-teal-300"
+    [disabled]="!formValid">
+    {{ buttonText }}
+</button>
