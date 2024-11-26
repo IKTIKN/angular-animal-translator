@@ -1,0 +1,36 @@
+export const LANGUAGE_OPTIONS = {
+    DETECT_LANGUAGE: 'Taal herkennen',
+    DETECTED_LANGUAGE: `gedetecteerd`,
+    ERROR_DETECT_LANGUAGE: 'Fout',
+    HUMAN_LANGUAGE: 'Mens',
+    HUMAN_DRUNK_VOCABULARY_CHEERS: ' Proost!',
+    HUMAN_DRUNK_VOCABULARY_BURP: ' Burp!',
+    LABRADOR_LANGUAGE: 'Labrador',
+    LABRADOR_VOCABULARY: 'woef',
+    POODLE_LANGUAGE: 'Poedel',
+    POODLE_VOCABULARY: 'woefie',
+    PARAKEET_LANGUAGE: 'Parkiet',
+    PARAKEET_VOCABULARY_TJILP: 'tjilp',
+    PARAKEET_VOCABULARY_PEEP: 'piep',
+    PARROT_LANGUAGE: 'Papegaai',
+    PARROT_VOCABULARY: 'Ik praat je na:'
+};
+
+export const TRANSLATOR_FORM = {
+    FORM_HEADER: 'Dierenvertaler',
+    FROM_LABEL: 'Van',
+    TO_LABEL: 'Naar',
+    DRUNK_LABEL: 'Ik ben zo dronken!!!',
+    TEXT_AREA_LABEL: 'Te vertalen text',
+    TRANSLATE_BUTTON: 'Vertaal',
+    FROM_LANGUAGE_KEY: 'fromLanguage',
+    TO_LANGUAGE_KEY: 'toLanguage',
+    TEXT_TO_TRANSLATE_KEY: 'textToTranslate',
+    INVALID_CHARACTERS_KEY: 'invalidCharacters',
+    REQUIRED_KEY: 'required',
+    REQUIRED_ERROR: 'Tekst moet minimaal 1 karakter bevatten',
+    DETECTION_FAILED_KEY: 'languageDetectionFailed',
+    DETECTION_FAILED_ERROR: 'Taal kon niet automatisch worden herkend',
+    MISMATCH_KEY: 'inputMismatch',
+    MISMATCH_ERROR: 'Input komt niet overeen met geselecteerde taal',
+};
