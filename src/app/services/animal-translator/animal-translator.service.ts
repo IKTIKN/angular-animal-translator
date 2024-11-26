@@ -1,10 +1,7 @@
 import { Injectable } from '@angular/core';
+import { LANGUAGE_OPTIONS } from '../../strings/strings';
+import { LanguageMap } from '../../interfaces/language-map';
 
-export interface LanguageMap {
-  specie: string;
-  speaksTo: string[];
-  vocabulary: string[] | undefined;
-}
 
 @Injectable({
   providedIn: 'root'
@@ -13,24 +10,38 @@ export class AnimalTranslatorService {
 
   private languageMapping: LanguageMap[] = [
     {
-      specie: 'Mens',
-      speaksTo: ['Labrador', 'Poedel', 'Parkiet', 'Papegaai'],
+      specie: LANGUAGE_OPTIONS.HUMAN_LANGUAGE,
+      speaksTo: [
+        LANGUAGE_OPTIONS.LABRADOR_LANGUAGE,
+        LANGUAGE_OPTIONS.POODLE_LANGUAGE,
+        LANGUAGE_OPTIONS.PARAKEET_LANGUAGE,
+        LANGUAGE_OPTIONS.PARROT_LANGUAGE,
+      ],
       vocabulary: undefined
     },
     {
-      specie: 'Labrador',
-      speaksTo: ['Poedel', 'Papegaai'],
-      vocabulary: ['woef']
+      specie: LANGUAGE_OPTIONS.LABRADOR_LANGUAGE,
+      speaksTo: [
+        LANGUAGE_OPTIONS.POODLE_LANGUAGE,
+        LANGUAGE_OPTIONS.PARROT_LANGUAGE,
+      ],
+      vocabulary: [LANGUAGE_OPTIONS.LABRADOR_VOCABULARY]
     },
     {
-      specie: 'Poedel',
-      speaksTo: ['Labrador', 'Papegaai'],
-      vocabulary: ['woefie']
+      specie: LANGUAGE_OPTIONS.POODLE_LANGUAGE,
+      speaksTo: [
+        LANGUAGE_OPTIONS.LABRADOR_LANGUAGE,
+        LANGUAGE_OPTIONS.PARROT_LANGUAGE
+      ],
+      vocabulary: [LANGUAGE_OPTIONS.POODLE_VOCABULARY]
     },
     {
-      specie: 'Parkiet',
-      speaksTo: ['Papegaai'],
-      vocabulary: ['tjilp', 'piep']
+      specie: LANGUAGE_OPTIONS.PARAKEET_LANGUAGE,
+      speaksTo: [LANGUAGE_OPTIONS.PARROT_LANGUAGE],
+      vocabulary: [
+        LANGUAGE_OPTIONS.PARAKEET_VOCABULARY_TJILP,
+        LANGUAGE_OPTIONS.PARAKEET_VOCABULARY_PEEP
+      ]
     }
   ];
 
@@ -79,20 +90,32 @@ export class AnimalTranslatorService {
     }
 
     // Words belong to multiple species
-    if (matchedSpecies.size > 1) return 'Fout';
+    if (matchedSpecies.size > 1) return LANGUAGE_OPTIONS.ERROR_DETECT_LANGUAGE;
 
     // No matches or invalid words detected
-    if (matchedSpecies.size === 0 || isHuman) return 'Mens';
+    if (matchedSpecies.size === 0 || isHuman) return LANGUAGE_OPTIONS.HUMAN_LANGUAGE;
 
     // return exact match
     return Array.from(matchedSpecies)[0];
   }
 
+  /**
+   * Retrieves the list of related languages for a given species.
+   *
+   * @param {string} specie - The name of the species to look up.
+   * @returns {string[]} An array of related languages the species can communicate with.
+   *                     Returns an empty array if no mapping is found.
+   */
   getRelatedLanguages(specie: string): string[] {
     const mapping = this.languageMapping.find(map => map.specie === specie);
     return mapping ? mapping.speaksTo : [];
   }
 
+  /**
+   * Retrieves the list of all base species in the language mapping.
+   *
+   * @returns {string[]} An array containing the names of all species.
+   */
   getAllSpecies(): string[] {
     return this.languageMapping.map(map => map.specie);
   }
@@ -112,45 +135,93 @@ export class AnimalTranslatorService {
    * @returns {string} The translated text.
    */
   translate(text: string, toSpecie: string, drunk: boolean): string {
-    // Split the input text into words
-    const words = text.trim().split(/\s+/);
-  
-    let translatedText: string;
-  
+    // Split the input text into words and punctuation while preserving their order
+    let wordsAndPunctuation: string[] = text.trim().match(/[\w']+|[.!?]/g) || [];
+    let translatedTokens: string[] = [];
+
     switch (toSpecie) {
-      case 'Labrador':
-        // Replace every word with 'woef'
-        translatedText = words.map(() => 'woef').join(' ');
+      case LANGUAGE_OPTIONS.LABRADOR_LANGUAGE:
+        translatedTokens = wordsAndPunctuation.map(word =>
+          /[.!?]/.test(word) ? word : LANGUAGE_OPTIONS.LABRADOR_VOCABULARY
+        );
         break;
-  
-      case 'Poedel':
-        // Replace every word with 'woefie'
-        translatedText = words.map(() => 'woefie').join(' ');
+
+      case LANGUAGE_OPTIONS.POODLE_LANGUAGE:
+        translatedTokens = wordsAndPunctuation.map(word =>
+          /[.!?]/.test(word) ? word : LANGUAGE_OPTIONS.POODLE_VOCABULARY
+        );
         break;
-  
-      case 'Parkiet':
-        // Replace words starting with a vowel with 'tjilp', others with 'piep'
-        translatedText = words
-          .map(word => /^[aeiou]/i.test(word) ? 'tjilp' : 'piep')
-          .join(' ');
+
+      case LANGUAGE_OPTIONS.PARAKEET_LANGUAGE:
+        translatedTokens = wordsAndPunctuation.map(word =>
+          /^[aeiou]/i.test(word)
+            ? LANGUAGE_OPTIONS.PARAKEET_VOCABULARY_TJILP
+            : /[.!?]/.test(word)
+              ? word
+              : LANGUAGE_OPTIONS.PARAKEET_VOCABULARY_PEEP
+        );
         break;
-  
-      case 'Papegaai':
-        // Prepend "Ik praat je na: " to the original text
-        translatedText = `Ik praat je na: ${text}`;
+
+      case LANGUAGE_OPTIONS.PARROT_LANGUAGE: {
+        const papegaaiTranslation: string[] = [];
+        const prefix: string[] = LANGUAGE_OPTIONS.PARROT_VOCABULARY.match(/\w+|[^\w\s]/g) ?? [];
+        let currentSentence: string[] = [];
+
+        for (const token of wordsAndPunctuation) {
+          if (/[.!?]/.test(token)) {
+            // Add prefix and sentence if any words exist
+            if (currentSentence.length) {
+              papegaaiTranslation.push(...prefix, ...currentSentence);
+              currentSentence = [];
+            }
+            papegaaiTranslation.push(token); // Add punctuation
+          } else {
+            currentSentence.push(token); // Collect tokens in the current sentence
+          }
+        }
+
+        // Handle remaining sentence if no punctuation ends the input
+        if (currentSentence.length) papegaaiTranslation.push(...prefix, ...currentSentence);
+        
+        // Update variables for final translation
+        translatedTokens = papegaaiTranslation;
+        wordsAndPunctuation = papegaaiTranslation;
         break;
-  
+      }
+
       default:
-        // Return the original text if species is not recognized
-        translatedText = text;
+        return text;
     }
-  
-    if (drunk) {
-      translatedText += ' Burp!';
-    }
-  
+
+    // Properly join words and punctuation after translation
+    let translatedText = '';
+    let wordCount = 0;
+    wordsAndPunctuation.forEach((token, index) => {
+      const isPunctuation = /[:.!?]/.test(token);
+      if (isPunctuation) {
+        // Attach punctuation directly to the previous word without spaces
+        if (/[:]/.test(token)) translatedText += ':';
+        else translatedText += `${translatedTokens[index]}${drunk ? LANGUAGE_OPTIONS.HUMAN_DRUNK_VOCABULARY_CHEERS : ''}`
+      } else {
+        wordCount++;
+        const currentToken = drunk && (wordCount) % 4 === 0 ? this.reverseWord(translatedTokens[index]) : translatedTokens[index];
+        translatedText += `${translatedText ? ' ' : ''}${currentToken}`;
+      }
+    });
+
+    if (drunk) translatedText += LANGUAGE_OPTIONS.HUMAN_DRUNK_VOCABULARY_BURP;
+
     return translatedText;
   }
-  
+
+  /**
+   * Reverse a string
+   *
+   * @param {string} word - The input text to be reversed.
+   * @returns {string} - The reversed input
+   */
+  private reverseWord(word: string): string {
+    return word.split('').reverse().join('')
+  }
 
 }
