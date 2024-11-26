@@ -1,32 +1,34 @@
-<div class="rounded-3xl text-2xl border-dashed border-gray-400 border-4 h-48 p-4 overflow-scroll">
-    @switch (specie) {
-        @case ('Labrador') {
-            <div class="text-black font-bold text-lg" style="font-size: 1.25rem;">{{ text }}</div>
-        }
-        @case ('Poedel') {
-            <div class="text-gray-700" style="font-size: 0.625rem;">{{ text }}</div>
-        }
-        @case ('Parkiet') {
-            <div>
+<div class="rounded-3xl text-2xl border-dashed border-gray-400 border-4 h-64 overflow-hidden flex flex-col">
+    <div class="flex-grow overflow-scroll p-4">
+        @switch (specie) {
+            @case ('Labrador') {
+                <div class="text-black font-bold text-lg" style="font-size: 1.25rem;">{{ text }}</div>
+            }
+            @case ('Poedel') {
+                <div class="text-gray-700" style="font-size: 0.625rem;">{{ text }}</div>
+            }
+            @case ('Parkiet') {
+                <div>
+                    @for (line of formattedText; track $index) {
+                        <div>
+                            @for ( word of line; track $index) {
+                                <span [class.italic]="word === 'tjilp'">{{ word }} </span>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+            @case ('Papegaai') {
                 @for (line of formattedText; track $index) {
-                    <div>
-                        @for ( word of line; track $index) {
-                            <span [class.italic]="word === 'tjilp'">{{ word }} </span>
-                        }
-                    </div>
-                }
-            </div>
-        }
-        @case ('Papegaai') {
-            <div>
-                @for (line of formattedText; track $index) {
-                    <div>
-                        @for ( word of line; track $index) {
+                    <p>
+                        @for (word of line; track $index) {
                             <span [ngClass]="getColorClass($index)">{{ word }} </span>
+                            @if (isSentenceEnd(word)) { <br>}
                         }
-                    </div>
+                    </p>
                 }
-            </div>
+            }
         }
-    }
+    </div>
+
 </div>
