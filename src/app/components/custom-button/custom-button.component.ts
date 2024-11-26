@@ -14,6 +14,6 @@ export class CustomButtonComponent {
   @Output() onButtonClick: EventEmitter<boolean> = new EventEmitter<boolean>();
 
   emitButtonClick() {
-    this.onButtonClick.emit(true); // Emit true (or whatever you prefer)
+    this.onButtonClick.emit(true);
   }
 }
