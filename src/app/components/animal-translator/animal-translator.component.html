@@ -2,26 +2,28 @@
     class="w-full md:max-w-4xl d-flex mx-auto p-4 sm:p-6 md:p-8 box-border">
     <!-- Form header -->
     <div class="text-start mb-6">
-        <span class="text-3xl md:text-6xl">Dierenvertaler</span>
+        <span class="text-3xl md:text-6xl">{{ translatorFormHeader }}</span>
     </div>
 
     <!-- Textarea for input -->
     <div class="mb-4">
         <mat-form-field appearance="outline" class="w-full">
-            <mat-label>Te vertalen tekst</mat-label>
+            <mat-label>{{ translatorFormTextAreaLabel }}</mat-label>
             <textarea matInput rows="5" formControlName="textToTranslate" class="w-full min-h-10 max-h-64 p-2 border border-gray-300 rounded-md"></textarea>
             <!-- Error for required validation -->
             @if (translatorForm.get('textToTranslate')?.hasError('required')) {
-                <mat-error>De tekst moet minimaal 1 karakter bevatten</mat-error>
+                <mat-error>{{ translatorForm.get('textToTranslate')?.getError('required') }}</mat-error>
             }
             <!-- Error automatic language detection failure -->
             @if (translatorForm.get('textToTranslate')?.hasError('languageDetectionFailed')) {
-                <mat-error>Taal kon niet automatisch worden herkend</mat-error>
+                <mat-error>{{ translatorForm.get('textToTranslate')?.getError('languageDetectionFailed') }}</mat-error>
             }
             <!-- Error text does not match selection -->
-            @if (translatorForm.get('textToTranslate')?.hasError('textSelectMatchFailed')) {
-                <mat-error>Input komt niet overeen met geselecteerde taal</mat-error>
+            @if (translatorForm.get('textToTranslate')?.hasError('inputMismatch')) {
+                <mat-error>{{ translatorForm.get('textToTranslate')?.getError('inputMismatch') }}</mat-error>
             }
+
+            
         </mat-form-field>
     </div>
 
@@ -30,9 +32,9 @@
         <!-- 'Van' Dropdown -->
         <div class="w-full sm:w-1/3">
             <mat-form-field appearance="outline" class="w-full">
-                <mat-label>Van</mat-label>
+                <mat-label>{{ translatorFormFromLabel }}</mat-label>
                 <mat-select formControlName="fromLanguage">
-                    <mat-option value="Taal herkennen">{{ detectedLanguage }}</mat-option>
+                    <mat-option value="Taal herkennen">{{ detectLanguageOptionText }}</mat-option>
                     @for (specie of translatorFormSpecieItems; track specie) {
                         <mat-option [value]="specie">{{ specie }}</mat-option>
                     }
@@ -43,19 +45,19 @@
         <!-- 'Naar' Dropdown -->
         <div class="w-full sm:w-1/3">
             <mat-form-field appearance="outline" class="w-full">
-                <mat-label>Naar</mat-label>
+                <mat-label>{{ translatorFormToLabel }}</mat-label>
                 <mat-select formControlName="toLanguage">
                     @for (destination of translatorFormDestinationItems; track destination) {
                         <mat-option [value]="destination">{{ destination }}</mat-option>
                     }
-                    <mat-checkbox formControlName="drunk" class="p-2">Ik ben zo dronken!!!</mat-checkbox>
+                    <mat-checkbox formControlName="drunk" class="p-2">{{ translatorFormDrunkLabel }}</mat-checkbox>
                 </mat-select>
             </mat-form-field>
         </div>
 
         <!-- Submit Button -->
         <div class="w-auto">
-            <app-custom-button [buttonText]="translateButtonText" [formValid]="translatorForm.valid" />
+            <app-custom-button [buttonText]="translatorFormButtonText" [formValid]="translatorForm.valid" />
         </div>
     </div>
 

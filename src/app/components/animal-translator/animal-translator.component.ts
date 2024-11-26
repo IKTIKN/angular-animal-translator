@@ -1,14 +1,16 @@
 import { Component } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { CustomButtonComponent } from "../custom-button/custom-button.component";
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { TranslatorForm } from '../../interfaces/translator-form';
-import { LocalStorageService } from '../../services/local-storage/local-storage.service';
 import { OutputTextAreaComponent } from "../output-text-area/output-text-area.component";
 import { AnimalTranslatorService } from '../../services/animal-translator/animal-translator.service';
+import { LANGUAGE_OPTIONS, TRANSLATOR_FORM } from '../../strings/strings';
+import { inputValidator } from '../../validators/input-validator';
+
 
 @Component({
   selector: 'app-animal-translator',
@@ -27,29 +29,33 @@ import { AnimalTranslatorService } from '../../services/animal-translator/animal
 })
 export class AnimalTranslatorComponent {
   private isUpdatingForm = false;
-  detectedLanguage = 'Taal herkennen';
-  currentLanguage = 'Mens';
-  currentDestinationSpecie = '';
-  translateButtonText = 'Vertaal';
+  detectLanguageOptionText: string = LANGUAGE_OPTIONS.DETECT_LANGUAGE;
+  detectedLanguage: string = LANGUAGE_OPTIONS.DETECT_LANGUAGE;
+  currentLanguage: string = LANGUAGE_OPTIONS.HUMAN_LANGUAGE;
   translatorForm: FormGroup;
+  translatorFormHeader: string = TRANSLATOR_FORM.FORM_HEADER;
+  translatorFormTextAreaLabel: string = TRANSLATOR_FORM.TEXT_AREA_LABEL;
+  translatorFormFromLabel: string = TRANSLATOR_FORM.FROM_LABEL;
+  translatorFormToLabel: string = TRANSLATOR_FORM.TO_LABEL;
+  translatorFormDrunkLabel: string = TRANSLATOR_FORM.DRUNK_LABEL;
+  translatorFormButtonText: string = TRANSLATOR_FORM.TRANSLATE_BUTTON;
   translatorFormDestinationItems: string[];
   translatorFormSpecieItems: string[];
   translatedText: string = '';
+  currentDestinationSpecie: string = '';
 
   constructor(
     private fb: FormBuilder,
-    private localStorage: LocalStorageService,
     private translator: AnimalTranslatorService
   ) {
-    // localStorage.clearTranslatorForm();
     this.translatorForm = this.fb.group({
-      textToTranslate: ['', [Validators.required, Validators.minLength(1)]],
+      textToTranslate: ['', [inputValidator(this.detectedLanguage, this.currentLanguage)]],
       fromLanguage: [this.detectedLanguage],
       toLanguage: [''],
       drunk: [false]
     });
 
-    this.translatorFormDestinationItems = this.getDestinationItems('Mens');
+    this.translatorFormDestinationItems = this.getDestinationItems(LANGUAGE_OPTIONS.HUMAN_LANGUAGE);
     this.translatorFormSpecieItems = translator.getAllSpecies();
   }
 
@@ -58,33 +64,56 @@ export class AnimalTranslatorComponent {
    * and sets up a listener for form value changes to dynamically update the state.
    */
   ngOnInit(): void {
-    // this.loadFormFromLocalStorage();
+    this.translatorForm.get(TRANSLATOR_FORM.FROM_LANGUAGE_KEY)?.valueChanges.subscribe((language: string) => {
+      this.translatorFormDestinationItems = this.getDestinationItems(
+        language === LANGUAGE_OPTIONS.DETECT_LANGUAGE ? this.detectedLanguage : language
+      );
+    });
+
     this.translatorForm.valueChanges.subscribe((formValue: TranslatorForm) => {
-      // console.log(this.currentLanguage, formValue.fromLanguage, formValue.fromLanguage.includes('herkennen'));
-      this.translatorForm.get('textToTranslate')?.markAsUntouched;
-
       if (this.isUpdatingForm) return;
-      this.localStorage.saveTranslatorForm(formValue);
-      if (formValue.fromLanguage != this.currentLanguage && !formValue.fromLanguage.includes('herkennen')) {
-        this.translatorFormDestinationItems = this.getDestinationItems(formValue.fromLanguage);
-      }
+      this.translatedText = '';
 
-      if (formValue.fromLanguage.includes('herkennen')) {
-        this.translatorFormDestinationItems = this.getDestinationItems(this.currentLanguage);
+      const language = formValue.fromLanguage;
+      const detectedLanguage = this.translator.detectLanguage(formValue.textToTranslate);
+
+      if (
+        language === LANGUAGE_OPTIONS.DETECT_LANGUAGE 
+        && detectedLanguage != LANGUAGE_OPTIONS.ERROR_DETECT_LANGUAGE 
+        && formValue.textToTranslate.length > 0
+      ) {
+        this.detectLanguageOptionText = `{${detectedLanguage}} ${LANGUAGE_OPTIONS.DETECTED_LANGUAGE}`;
+        // this.detectLanguageOptionText = this.formatMessage(LANGUAGE_OPTIONS.DETECT_LANGUAGE, detectedLanguage);
+        if (detectedLanguage !== this.detectedLanguage) 
+          this.translatorFormDestinationItems = this.getDestinationItems(detectedLanguage);
+      } else {
+        this.detectLanguageOptionText = LANGUAGE_OPTIONS.DETECT_LANGUAGE;
       }
-      this.setCurrentLanguage(formValue.fromLanguage, formValue.textToTranslate);
+      this.currentLanguage = language;
+      this.detectedLanguage = detectedLanguage;
+      this.updateTextToTranslateValidator();
+    
     });
   }
 
   /**
-   * Fetches the translated text based on the input text and selected species language.
+   * Updates the validator for the "textToTranslate" form control if necessary.
+   * Ensures the input adheres to the required rules based on the detected and current language.
    *
-   * @param {string} text - The text to translate.
-   * @param {string} specie - The target species language.
-   * @param {boolean} drunk - Indicates if the user is drunk.
+   * - Retrieves the "textToTranslate" control from the form.
+   * - Checks if the validator needs to be updated to include invalid character detection.
+   * - Sets the appropriate validators and refreshes the control's validation state without emitting events to avoid recursive updates.
    */
-  getTranslation(text: string, specie: string, drunk: boolean): void {
-    this.translatedText = this.translator.translate(text, specie, drunk);
+  updateTextToTranslateValidator(): void {
+    const textToTranslateControl = this.translatorForm.get(TRANSLATOR_FORM.TEXT_TO_TRANSLATE_KEY);
+    if (textToTranslateControl) {
+      // Check if the validator needs to be updated
+      const currentValidators = textToTranslateControl.validator?.({} as AbstractControl);
+      if (!currentValidators || !currentValidators[TRANSLATOR_FORM.INVALID_CHARACTERS_KEY]) {
+        textToTranslateControl.setValidators([inputValidator(this.detectedLanguage, this.currentLanguage)]);
+        textToTranslateControl.updateValueAndValidity({ emitEvent: false }); // Prevent emitting to avoid recursion!
+      }
+    }
   }
 
   /**
@@ -97,60 +126,18 @@ export class AnimalTranslatorComponent {
   getDestinationItems(specie: string): string[] {
     const destinations = this.translator.getRelatedLanguages(specie);
     this.currentDestinationSpecie = destinations[0];
-    if (destinations.length > 0) this.updateFormValue('toLanguage', destinations[0]);
+    if (destinations.length > 0) this.updateFormValue(TRANSLATOR_FORM.TO_LANGUAGE_KEY, destinations[0]);
     return destinations;
   }
 
   /**
-   * Sets the `currentLanguage` based on the `fromLanguage` and validates the input text.
-   * If "Taal herkennen" is selected, it attempts to detect the language from the input.
-   *
-   * @param {string} fromLanguage - The source language selected by the user.
-   * @param {string} textToTranslate - The input text to translate.
-   */
-  setCurrentLanguage(fromLanguage: string, textToTranslate: string): void {
-    const detectedLanguage = this.translator.detectLanguage(textToTranslate);
-    if (fromLanguage.includes('herkennen')) {
-      if (detectedLanguage === 'Fout') {
-        this.detectedLanguage = 'Taal herkennen';
-        // this.currentLanguage = 'Mens';
-
-        // Trigger a form error
-        this.translatorForm.get('textToTranslate')?.setErrors({
-          languageDetectionFailed: 'Taal kon niet automatisch worden herkend'
-        });
-      } else {
-        // Successful language detection
-        this.detectedLanguage = `{${detectedLanguage}} gedetecteerd`;
-        this.currentLanguage = detectedLanguage;
-        this.translatorFormDestinationItems = this.getDestinationItems(this.currentLanguage);
-        this.translatorForm.get('textToTranslate')?.setErrors(null);
-      }
-    } else {
-      if (detectedLanguage != fromLanguage) {
-        console.log(detectedLanguage, this.currentLanguage);
-        // Trigger a form error
-        this.translatorForm.get('textToTranslate')?.setErrors({
-          textSelectMatchFailed: 'Input komt niet overeen met geselecteerde taal'
-        });
-      } else {
-        // Ensure errors are cleared if not in detection mode
-        this.translatorForm.get('textToTranslate')?.setErrors(null);
-      }
-      this.currentLanguage = fromLanguage;
-      this.translatedText = '';
-      this.detectedLanguage = 'Taal herkennen';
-    }
-  }
-
-  /**
-   * Triggers the translation process. Logs form validity and retrieves
-   * the translated text for the selected language.
+   * Handles the translation process when the translate button is clicked.
+   * Extracts the form values, sets the target language, and updates the translated text.
    */
   onTranslate(): void {
     const form: TranslatorForm = this.translatorForm.value;
     this.currentDestinationSpecie = form.toLanguage;
-    this.getTranslation(form.textToTranslate, form.toLanguage, form.drunk);
+    this.translatedText = this.translator.translate(form.textToTranslate, form.toLanguage, form.drunk);
   }
 
   /**
@@ -166,13 +153,4 @@ export class AnimalTranslatorComponent {
     this.isUpdatingForm = false;
   }
 
-  /**
-   * Loads stored form data from localStorage, if available, and patches it into the form.
-   */
-  private loadFormFromLocalStorage(): void {
-    const storedFormData = this.localStorage.getTranslatorForm();
-    if (storedFormData) {
-      this.translatorForm.patchValue(storedFormData);
-    }
-  }
 }
