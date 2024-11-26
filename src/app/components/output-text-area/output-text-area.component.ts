@@ -76,4 +76,13 @@ export class OutputTextAreaComponent {
     return colors[index % colors.length];
   }
   
+  /**
+   * Boolean to determine sentence ending for parrot translations.
+   * 
+   * @param {string} word - The index of the word or line, used to determine the color.
+   * @returns {string} - True if word contains interpunction indicating the end of a sentence. Otherwise false
+   */
+  isSentenceEnd(word: string): boolean {
+    return /[.!?]/.test(word);
+  }
 }
